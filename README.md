@@ -121,5 +121,5 @@
 ### 3) 검증 결과 (2026-11-26)
 
 - `index.html`·`app.html`·`scanner.html` 모두 lxml 파싱 오류 0, 중복 id 0, 인라인 스크립트 esprima 구문 검사 통과.
-- 실제 Chromium(원격 브라우저)에서 `raw.githack.com`으로 3개 페이지를 열어 렌더링·콘솔 오류·주요 기능을 확인했습니다. 스크린샷: `downloads/2026-11-26_rollquest_landing.png`, `downloads/2026-11-26_rollquest_app.png`, `downloads/2026-11-26_rollquest_scanner.png`.
-- **한계**: 이 작업 환경에는 로컬 브라우저 바이너리가 없어 `127.0.0.1` 서버를 쓸 수 없었고, 검증은 GitHub에 푸시한 파일을 CDN 프록시로 연 것입니다. 휴대폰 화면과 Safari는 직접 확인하지 못했습니다.
+- 실제 Chromium(원격 브라우저)에서 `raw.githack.com`으로 3개 페이지를 열었습니다. 랜딩은 설문 iframe이 페이지 안에서 렌더되고 9문항·제출 버튼까지 표시되는 것, 체험판은 체크→진행률 갱신→새로고침 후 유지, 스캐너는 예시 캡처로 **인식 신뢰도 88% · 미션 4건** 추출 → 체험판 보드로 4건 전달(재방문 시 중복 없음)을 확인했습니다.
+- **한계**: 이 작업 환경에는 로컬 브라우저 바이너리가 없어 `127.0.0.1` 서버를 쓸 수 없었고, 검증은 GitHub에 푸시한 파일을 CDN 프록시로 연 것입니다. **개발자 도구 콘솔 오류는 직접 수집하지 못했고**(렌더링·리소스 로딩·기능 동작으로 판단), 휴대폰 화면과 Safari도 확인하지 못했습니다. 스크린샷: `downloads/2026-11-26_rollquest_landing.png`, `_app.png`, `_scanner.png`, `_survey.png`.
