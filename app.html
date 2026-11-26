@@ -795,14 +795,13 @@
       <a href="#deadlines">마감</a>
       <a href="#board">미션 보드</a>
       <a href="#pace">페이스 계산기</a>
+      <a href="scanner.html">스크린샷 인식</a>
       <a href="#notes">데이터 기준</a>
     </nav>
 
     <div class="header-actions">
       <a class="btn btn-ghost btn-sm header-ghost" href="index.html">소개 페이지</a>
-      <a class="btn btn-primary btn-sm"
-         href="https://docs.google.com/forms/d/e/1FAIpQLScjEDAUnvEniLGRBFp_GmzjB18Mxg23zEVcGIcwvQM43e_iXw/viewform"
-         target="_blank" rel="noopener noreferrer">1분 설문</a>
+      <a class="btn btn-primary btn-sm" href="index.html#survey">1분 설문</a>
     </div>
   </div>
 </header>
@@ -1102,6 +1101,7 @@
   'use strict';
 
   var STORE_KEY = 'questhub.mvp.v1';
+  var SCAN_KEY = 'questhub.scanner.pending.v1';
   var KST_MS = 9 * 60 * 60 * 1000;
   var MS_DAY = 24 * 60 * 60 * 1000;
 
@@ -1382,6 +1382,39 @@
         '</label>' + del +
       '</li>';
     }).join('');
+  }
+
+  /* ---------- 스크린샷 인식 결과 받기 (scanner.html → 이 페이지) ---------- */
+  function pullScannedMissions() {
+    var raw = null;
+    try {
+      raw = window.localStorage.getItem(SCAN_KEY);
+    } catch (e) {
+      return 0;
+    }
+    if (!raw) return 0;
+    var added = 0;
+    try {
+      var list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        list.map(sanitizeMission).filter(Boolean).forEach(function (m) {
+          m.custom = true;
+          var dup = state.missions.some(function (x) {
+            return String(x.title).replace(/\s/g, '') === String(m.title).replace(/\s/g, '');
+          });
+          if (dup) return;
+          state.missions.push(m);
+          added++;
+        });
+      }
+    } catch (e2) {
+      added = 0;
+    }
+    try {
+      window.localStorage.removeItem(SCAN_KEY);
+    } catch (e3) { /* 저장이 막힌 브라우저 */ }
+    if (added) save(true);
+    return added;
   }
 
   function renderSaveState() {
@@ -1713,6 +1746,8 @@
     var days = daysUntil(PROGRESS_END, new Date());
     if (!state.daysCustom) state.pace.daysLeft = Math.min(400, days);
 
+    var scanned = pullScannedMissions();
+
     buildDeadlines();
     el.resetHour.value = state.resetHour;
     syncPaceInputs();
@@ -1723,6 +1758,11 @@
     bind();
 
     setInterval(tickDeadlines, 1000);
+
+    if (scanned) {
+      renderBoardOnly();
+      toast('스크린샷 인식에서 미션 ' + scanned + '건을 추가했습니다');
+    }
 
     /* 첫 방문이면 아무것도 저장하지 않은 상태로 둡니다: 체크를 하거나 값을 바꿀 때 저장됩니다. */
   }

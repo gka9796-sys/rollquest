@@ -4,8 +4,11 @@
 
 | 파일 | 역할 |
 | --- | --- |
-| `index.html` | 소개·가설 검증 랜딩페이지 (HTML + CSS 인라인, 스크립트 없음) |
+| `index.html` | 소개·가설 검증 랜딩페이지 (HTML + CSS 인라인, 스크립트 없음). **1분 설문(Google Forms)이 페이지 안에 임베드**되어 있습니다. |
 | `app.html` | **MVP 체험판** — 미션 체크 보드 + 마감 카운트다운 + ‘하루 몇 판’ 계산기 (HTML + CSS + JS 한 파일, localStorage 사용) |
+| `scanner.html` | **스크린샷 미션 인식 시제품** — 미션 화면 캡처를 올리면 브라우저 안에서 OCR 후 규칙으로 미션 목록을 만들고 `app.html`로 넘깁니다 |
+| `assets/vendor/` | OCR 엔진(Tesseract.js)과 언어 데이터(tessdata_fast kor·eng). 외부 CDN 없이 이 폴더에서만 불러옵니다 |
+| `assets/sample-mission.png` | 예시 이미지 (이 프로젝트에서 직접 만든 가짜 임무 화면) |
 | `README.md` | 이 문서 |
 
 제품명 표기는 **롤퀘스트 (QuestHub)** 로 통일했습니다. 라이브 설문(Google Forms)이 `롤퀘스트`로 되어 있어, 화면의 첫 표기는 `롤퀘스트 (QuestHub)`, 이후 문장은 `롤퀘스트`로 적습니다.
@@ -96,3 +99,27 @@
 ## 지켜야 하는 고지
 
 라이엇 3자 앱 정책은 제품에 아래 영문 고지 문구를 눈에 띄는 곳에 두도록 요구합니다. 두 HTML 푸터에 그대로 넣어 두었으니 지우지 마세요. (한국어 안내 문구도 함께 있습니다.)
+
+## 2026-11-26 추가: 페이지 안 설문 · 스크린샷 미션 인식
+
+### 1) 랜딩페이지 안 설문 (`index.html` `#survey`)
+
+- 9문항 Google Form(`1SLItKFYc43VZT0eq9xVJQU_GusfxG504kgn5EMi1Mc8`)을 `?embedded=true` 주소로 **iframe 임베드**했습니다. 페이지를 떠나지 않고 응답·제출할 수 있고, 제출된 응답은 Google Forms에 그대로 저장됩니다.
+- iframe을 못 불러오는 환경을 위해 **새 창에서 열기** 링크와 안내 문구를 함께 두었습니다(iframe 내부 문구 + 하단 링크).
+- 헤더·히어로·마지막 CTA의 설문 버튼은 모두 `#survey` 앵커로 바뀌었습니다(외부 이동 없음).
+- 응답을 시트 기록표로 옮기는 작업은 `documents/questhub/sync_survey_to_sheet.py`로 분리했습니다(아래 참고).
+
+### 2) 스크린샷 미션 인식 (`scanner.html`)
+
+- 이미지 업로드(클릭·드래그·Ctrl+V) → 미리보기 → **브라우저 안 OCR** → 규칙 파싱 → 미션 목록 → `app.html` 보드로 전달.
+- OCR은 [Tesseract.js](https://github.com/naptha/tesseract.js)(Apache-2.0)와 [tessdata_fast](https://github.com/tesseract-ocr/tessdata_fast) kor·eng 모델을 **이 폴더에 직접 넣어** CDN 없이 동작합니다. 이미지는 서버로 전송되지 않습니다.
+- 전처리 옵션: 어두운 배경 반전(기본 켜짐), 한국어+영어/영어만, 작은 이미지 확대.
+- 파서가 잡는 것: 유형(일일/주간/이벤트), 진행도 `3 / 5`, `500 BXP`, 남은 시간(`2일 4시간`, `D-3`), 완료 표시. 확신도(높음/확인 필요/낮음)를 표시하고 이름·유형·BXP를 직접 고칠 수 있습니다.
+- OCR을 못 쓰는 환경을 위해 **글자만 붙여넣어 파싱**하는 경로도 있습니다.
+- 전달 방식: `localStorage` 키 `questhub.scanner.pending.v1`에 담아 두면, `app.html`이 열릴 때 한 번만 읽어 미션 목록에 추가하고 그 키를 지웁니다(같은 브라우저에서 열어야 함).
+
+### 3) 검증 결과 (2026-11-26)
+
+- `index.html`·`app.html`·`scanner.html` 모두 lxml 파싱 오류 0, 중복 id 0, 인라인 스크립트 esprima 구문 검사 통과.
+- 실제 Chromium(원격 브라우저)에서 `raw.githack.com`으로 3개 페이지를 열어 렌더링·콘솔 오류·주요 기능을 확인했습니다. 스크린샷: `downloads/2026-11-26_rollquest_landing.png`, `downloads/2026-11-26_rollquest_app.png`, `downloads/2026-11-26_rollquest_scanner.png`.
+- **한계**: 이 작업 환경에는 로컬 브라우저 바이너리가 없어 `127.0.0.1` 서버를 쓸 수 없었고, 검증은 GitHub에 푸시한 파일을 CDN 프록시로 연 것입니다. 휴대폰 화면과 Safari는 직접 확인하지 못했습니다.
