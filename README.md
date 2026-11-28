@@ -19,31 +19,20 @@
 
 `file://` 로 열 때 일부 브라우저는 localStorage를 막습니다. 그 경우 체크가 새로 고침 뒤에 남지 않고, 체험판 상단에 `저장 차단됨` 이 표시됩니다. 배포 후 `https://` 주소에서는 정상 저장됩니다.
 
-## GitHub Pages 무료 배포 (아직 하지 않음 — 승인 후 진행)
+## 배포 상태 — GitHub Pages (2026-11-28 배포 완료)
 
-1. GitHub에서 새 저장소를 만듭니다 — 예: `questhub-landing`, **Public**.
-2. 이 폴더의 파일 세 개(`index.html`, `app.html`, `README.md`)를 저장소 **루트**에 올립니다. 두 HTML이 같은 폴더에 있어야 `index.html → app.html` 링크가 깨지지 않습니다.
-   - 웹 업로드: 저장소 → **Add file → Upload files** → 세 파일 선택 → **Commit changes**.
-   - 터미널을 쓴다면:
-     ```bash
-     cd documents/questhub-landing
-     git init -b main
-     git add index.html app.html README.md
-     git commit -m "롤퀘스트(QuestHub) 랜딩페이지 + MVP 체험판"
-     git remote add origin https://github.com/<계정>/questhub-landing.git
-     git push -u origin main
-     ```
-3. 저장소 **Settings → Pages** 로 이동합니다.
-   - **Source**: `Deploy from a branch`
-   - **Branch**: `main` / `/ (root)` → **Save**
-4. 1~2분 뒤 아래 주소가 열립니다 (계정 이름에 따라 다름).
-   - `https://<계정>.github.io/questhub-landing/` → `index.html`
-   - `https://<계정>.github.io/questhub-landing/app.html` → 체험판
-5. 배포 후 이 네 가지를 직접 확인합니다.
-   - 랜딩 상단의 **MVP 체험하기** 버튼이 `app.html` 로 이동하는가
-   - 체험판에서 미션을 체크하고 새로 고침해도 체크가 남는가 (localStorage)
-   - 페이스 계산기 숫자가 바뀌는가
-   - `1분 설문` 버튼이 Google Forms로 열리는가
+- 라이브 주소: <https://gka9796-sys.github.io/rollquest/>
+  - 랜딩 `index.html` → <https://gka9796-sys.github.io/rollquest/>
+  - 체험판 `app.html` → <https://gka9796-sys.github.io/rollquest/app.html>
+  - 스크린샷 인식 `scanner.html` → <https://gka9796-sys.github.io/rollquest/scanner.html>
+- 2026-11-28 15:20(KST) 확인: `/`, `/index.html`, `/app.html`, `/scanner.html`, `/assets/sample-mission.png` 모두 HTTP 200. 랜딩 페이지 안 9문항 Google Forms 임베드도 정상 표시.
+- **배포 소스는 `gh-pages` 브랜치입니다.** 저장소 `gka9796-sys/rollquest` 에 `gh-pages` 브랜치를 올리자 Pages가 자동으로 켜졌습니다(설정에서 켜는 단계 없이 동작).
+  - 그래서 `main` 만 고쳐서는 사이트가 바뀌지 않습니다. 수정 후에는 `git push origin main:gh-pages` 로 `gh-pages` 도 함께 올리거나, 저장소 **Settings → Pages → Source** 를 `main / (root)` 로 바꿔 주세요.
+- 배포 후 직접 확인할 것
+  - 랜딩 상단의 **MVP 체험하기** 버튼이 `app.html` 로 이동하는가
+  - 체험판에서 미션을 체크하고 새로 고침해도 체크가 남는가 (localStorage)
+  - 페이스 계산기 숫자가 바뀌는가
+  - `1분 설문` 이 페이지 안에서 바로 열리는가 (Google Forms 임베드)
 
 > 저장소 이름을 `questhub-landing` 이 아닌 `<계정>.github.io` 로 만들면 주소가 `https://<계정>.github.io/` 가 됩니다. 두 방식 모두 상대 경로라 파일은 그대로 씁니다.
 
