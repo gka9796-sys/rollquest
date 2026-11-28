@@ -761,22 +761,51 @@
       if (isHeader) return;
 
       /* 3) 제목 정리 */
-      var title = s
-        .replace(/(\d{1,3})\s*\/\s*(\d{1,3})/g, ' ')
-        .replace(/(\d{1,3}(?:,\d{3})+|\d{1,5})\s*(?:BXP|bxp|XP|xp|경험치)/g, ' ')
-        .replace(/(남은\s*시간|보상|미션|임무|목표|달성)\s*[:：]/g, ' ')
-        .replace(/\bD\s*-\s*\d{1,3}\b/gi, ' ')
-        .replace(/\d{1,3}\s*일(?:\s*\d{1,2}\s*시간)?/g, ' ')
-        .replace(/^[\-•·\u2022\*\d\.\)\]]+\s*/, '')
-        .replace(/\s*(완료|달성)\s*$/, '')
-        .replace(/\s{2,}/g, ' ')
-        .trim();
+      /* 3-0) 줄 앞의 유형 머리말("주간 미션", "이벤트 임무:")은 유형 정보로만 쓰고,
+         뒤에 제목이 남을 때만 제목 계산에서 뺀다 */
+      var sBody = s;
+      var typeHead = /^(주간|일일|이벤트)\s*(?:미션|임무|목표|퀘스트)\s*[:：]?\s*/.exec(s);
+      if (typeHead) {
+        var headRest = s.slice(typeHead[0].length).trim();
+        if ((headRest.match(/[가-힣]/g) || []).length >= 3 || /[A-Za-z]{2}/.test(headRest)) sBody = headRest;
+      }
 
-      var korean = (title.match(/[가-힣]/g) || []).length;
-      if (title.length < 2 || (korean === 0 && !/[A-Za-z]{2}/.test(title))) {
+      function cleanTitle(text) {
+        return text
+          .replace(/(\d{1,3})\s*\/\s*(\d{1,3})/g, ' ')
+          .replace(/(\d{1,3}(?:,\d{3})+|\d{1,5})\s*(?:BXP|bxp|XP|xp|경험치)/g, ' ')
+          .replace(/(남은\s*시간|보상|미션|임무|목표|달성)\s*[:：]/g, ' ')
+          .replace(/\bD\s*-\s*\d{1,3}\b/gi, ' ')
+          .replace(/\d{1,3}\s*일(?:\s*\d{1,2}\s*시간)?/g, ' ')
+          .replace(/^[\-•·\u2022\*]+\s*/, '')
+          .replace(/^\d{1,2}\s*[.)\]]\s+/, '')
+          .replace(/\s*(완료|달성)\s*$/, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim();
+      }
+      function usableTitle(t) {
+        return t.length >= 2 && ((t.match(/[가-힣]/g) || []).length >= 2 || /[A-Za-z]{2}/.test(t));
+      }
+
+      var title = cleanTitle(sBody);
+      if (!usableTitle(title)) title = cleanTitle(s);
+      if (!usableTitle(title)) {
         /* 제목이 안 남으면(진행도만 있는 줄 등) 직전 미션에 진행도를 붙인다 */
         var p = last();
         if (progress && p && !p.progress) p.progress = progress;
+        return;
+      }
+
+      /* 3-2) "미션: 이름" 줄이 앞의 "주간 목표 3 / 5" 같은 머리줄에 이어지는 경우,
+         진행도만 있는 머리줄을 새 미션으로 만들지 않고 제목만 넘겨받는다 */
+      var prevItem = last();
+      if (prevItem && /^(미션|임무|퀘스트)\s*[:：]/.test(s) &&
+          !prevItem.bxp && (!prevItem.title || /^(주간|일일|이벤트)?\s*목표$/.test(prevItem.title.replace(/\s+/g, ' ').trim()))) {
+        prevItem.title = title.slice(0, 80);
+        prevItem.raw = (prevItem.raw + ' / ' + s).slice(0, 120);
+        if (bxp && !prevItem.bxp) prevItem.bxp = Math.min(5000, bxp);
+        if (deadline && !prevItem.deadline) prevItem.deadline = deadline;
+        prevItem.attached = true;
         return;
       }
 
